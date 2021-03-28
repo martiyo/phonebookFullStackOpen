@@ -1,39 +1,27 @@
+require("dotenv").config();
 const express = require("express");
-const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
+const Person = require("./models/person");
 
 app.use(express.json());
-app.use(morgan("dev"));
 app.use(cors());
 app.use(express.static("build"));
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
+const requestLogger = (request, response, next) => {
+  console.log("Method:", request.method);
+  console.log("Path:  ", request.path);
+  console.log("Body:  ", request.body);
+  console.log("---");
+  next();
+};
 
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "021-23499",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "020-456234",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendick",
-    number: "456-3245678",
-  },
-];
+app.use(requestLogger);
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get("/info", (request, response) => {
@@ -98,6 +86,7 @@ const unknowEndpoint = (request, response) => {
 
 app.use(unknowEndpoint);
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT);
-console.log(`Server running on port ${PORT}`);
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
